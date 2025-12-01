@@ -49,86 +49,35 @@ document.addEventListener("DOMContentLoaded", () => {
 // ------------------------------
 // AOS Animation Init
 // ------------------------------
-(function () {
-  const aosScript = document.createElement("script");
-  aosScript.src = "https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js";
-  aosScript.onload = function () {
-    AOS.init({ duration: 800, once: true, easing: "ease-out-cubic" });
-  };
-  document.body.appendChild(aosScript);
-})();
+document.addEventListener("DOMContentLoaded", function () {
+  AOS.init({ duration: 800, once: true, easing: "ease-out-cubic" });
+});
 
 // ------------------------------
 // Owl Carousel Loader
 // ------------------------------
-(function loadIfNeeded(src, testFn, onload) {
-  if (testFn()) {
-    onload();
-    return;
-  }
-  const s = document.createElement("script");
-  s.src = src;
-  s.onload = onload;
-  document.head.appendChild(s);
-})(
-  "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js",
-  function () {
-    return typeof jQuery !== "undefined";
-  },
-  function initOwl() {
-    (function ensureOwl() {
-      if (typeof jQuery === "undefined") {
-        setTimeout(ensureOwl, 50);
-        return;
-      }
-      if (typeof jQuery.fn.owlCarousel === "undefined") {
-        const s = document.createElement("script");
-        s.src =
-          "https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js";
-        s.onload = setupCarousel;
-        document.head.appendChild(s);
-      } else setupCarousel();
-    })();
-  }
-);
-
-function setupCarousel() {
-  jQuery(function ($) {
-    $(".owl-carousel").css("visibility", "visible");
-    $(".owl-carousel").owlCarousel({
-      loop: true,
-      margin: 20,
-      autoplay: true,
-      autoplayTimeout: 3000,
-      nav: false,
-      dots: false,
-      responsive: {
-        0: { items: 1 },
-        640: { items: 1 },
-        768: { items: 2 },
-        1024: { items: 3 },
-      },
-    });
+jQuery(function ($) {
+  $(".owl-carousel").css("visibility", "visible");
+  $(".owl-carousel").owlCarousel({
+    loop: true,
+    margin: 20,
+    autoplay: true,
+    autoplayTimeout: 3000,
+    nav: false,
+    dots: false,
+    responsive: {
+      0: { items: 1 },
+      640: { items: 1 },
+      768: { items: 2 },
+      1024: { items: 3 },
+    },
   });
-}
+});
 
 // ------------------------------
 // NAV + Mobile Menu + Up Button + Smooth Scroll
 // ------------------------------
 document.addEventListener("DOMContentLoaded", () => {
-  const menuBtn = document.getElementById("menuBtn");
-  const mobileMenu = document.getElementById("mobileMenu");
-  const upBtn = document.getElementById("upBtn");
-
-  // Mobile menu toggle (animated)
-  menuBtn.addEventListener("click", () => {
-    if (mobileMenu.style.maxHeight && mobileMenu.style.maxHeight !== "0px") {
-      mobileMenu.style.maxHeight = "0px";
-    } else {
-      mobileMenu.style.maxHeight = mobileMenu.scrollHeight + "px";
-    }
-  });
-
   // Show/hide up button
   window.addEventListener("scroll", () => {
     if (window.scrollY > 300) {
@@ -176,4 +125,84 @@ window.addEventListener("scroll", () => {
     navbar.classList.add("md:px-6");
     navbar.classList.remove("md:px-12");
   }
+});
+
+// Responsive AOS for Experience section
+(function () {
+  const BREAKPOINT = 768; // tailwind md breakpoint
+  const items = Array.from(document.querySelectorAll(".experience-item"));
+
+  // store original AOS value to restore on large screens
+  const originals = items.map((el) => el.getAttribute("data-aos") || "");
+
+  function applyMobileAOS() {
+    items.forEach((el) => el.setAttribute("data-aos", "fade-right"));
+    if (window.AOS && typeof AOS.refresh === "function") AOS.refresh();
+  }
+
+  function restoreDesktopAOS() {
+    items.forEach((el, i) => {
+      const val = originals[i];
+      if (val) el.setAttribute("data-aos", val);
+      else el.removeAttribute("data-aos");
+    });
+    if (window.AOS && typeof AOS.refresh === "function") AOS.refresh();
+  }
+
+  function checkAndApply() {
+    if (window.innerWidth < BREAKPOINT) applyMobileAOS();
+    else restoreDesktopAOS();
+  }
+
+  // run on load and on resize (debounced)
+  window.addEventListener("load", checkAndApply);
+  let rezTimer = null;
+  window.addEventListener("resize", () => {
+    clearTimeout(rezTimer);
+    rezTimer = setTimeout(checkAndApply, 120);
+  });
+})();
+
+// ScrollSpy Active Link
+const sections = document.querySelectorAll("section[id]");
+const navLinks = document.querySelectorAll(".nav-link");
+
+function updateActiveLink() {
+  let scrollPos = window.scrollY + window.innerHeight / 3;
+
+  sections.forEach((sec) => {
+    const top = sec.offsetTop;
+    const height = sec.offsetHeight;
+    const id = sec.getAttribute("id");
+
+    if (scrollPos >= top && scrollPos < top + height) {
+      navLinks.forEach((link) => {
+        link.classList.remove("nav-active");
+        if (link.getAttribute("href") === `#${id}`) {
+          link.classList.add("nav-active");
+        }
+      });
+    }
+  });
+}
+
+window.addEventListener("scroll", updateActiveLink);
+window.addEventListener("load", updateActiveLink);
+
+const menuBtn = document.getElementById("menuBtn");
+const mobileMenu = document.getElementById("mobileMenu");
+
+menuBtn.addEventListener("click", () => {
+  if (mobileMenu.style.maxHeight && mobileMenu.style.maxHeight !== "0px") {
+    mobileMenu.style.maxHeight = "0px";
+  } else {
+    mobileMenu.style.maxHeight = mobileMenu.scrollHeight + "px";
+  }
+});
+
+// Close menu when clicking a mobile link
+document.querySelectorAll(".mobile-link").forEach((link) => {
+  link.addEventListener("click", () => {
+    mobileMenu.style.maxHeight = "0px";
+  });
 });
