@@ -206,3 +206,63 @@ document.querySelectorAll(".mobile-link").forEach((link) => {
     mobileMenu.style.maxHeight = "0px";
   });
 });
+
+document.addEventListener("DOMContentLoaded", () => {
+  const canvas = document.getElementById("dotsCanvas");
+  const section = document.getElementById("contact");
+
+  const renderer = new THREE.WebGLRenderer({
+    canvas: canvas,
+    alpha: true,
+  });
+  renderer.setSize(section.clientWidth, section.clientHeight);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(
+    75,
+    section.clientWidth / section.clientHeight,
+    0.1,
+    1000
+  );
+  camera.position.z = 6;
+
+  // Create dots
+  const particles = 800;
+  const geometry = new THREE.BufferGeometry();
+  const positions = new Float32Array(particles * 3);
+
+  for (let i = 0; i < particles * 3; i++) {
+    positions[i] = (Math.random() - 0.5) * 12;
+  }
+
+  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+
+  const material = new THREE.PointsMaterial({
+    color: 0x38bdf8,
+    size: 0.05,
+    transparent: true,
+  });
+
+  const points = new THREE.Points(geometry, material);
+  scene.add(points);
+
+  function animate() {
+    requestAnimationFrame(animate);
+
+    // Subtle movement
+    points.rotation.x += 0.0005;
+    points.rotation.y += 0.0007;
+
+    renderer.setSize(section.clientWidth, section.clientHeight);
+    renderer.render(scene, camera);
+  }
+
+  animate();
+
+  // Resize fix
+  window.addEventListener("resize", () => {
+    renderer.setSize(section.clientWidth, section.clientHeight);
+    camera.aspect = section.clientWidth / section.clientHeight;
+    camera.updateProjectionMatrix();
+  });
+});
