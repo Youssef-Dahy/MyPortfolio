@@ -200,7 +200,6 @@ menuBtn.addEventListener("click", () => {
   }
 });
 
-// Close menu when clicking a mobile link
 document.querySelectorAll(".mobile-link").forEach((link) => {
   link.addEventListener("click", () => {
     mobileMenu.style.maxHeight = "0px";
@@ -226,7 +225,6 @@ document.addEventListener("DOMContentLoaded", () => {
   );
   camera.position.z = 6;
 
-  // Create dots
   const particles = 800;
   const geometry = new THREE.BufferGeometry();
   const positions = new Float32Array(particles * 3);
@@ -249,7 +247,6 @@ document.addEventListener("DOMContentLoaded", () => {
   function animate() {
     requestAnimationFrame(animate);
 
-    // Subtle movement
     points.rotation.x += 0.0005;
     points.rotation.y += 0.0007;
 
@@ -259,10 +256,247 @@ document.addEventListener("DOMContentLoaded", () => {
 
   animate();
 
-  // Resize fix
   window.addEventListener("resize", () => {
     renderer.setSize(section.clientWidth, section.clientHeight);
     camera.aspect = section.clientWidth / section.clientHeight;
     camera.updateProjectionMatrix();
   });
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  addShakeAnimation();
+
+  if (typeof emailjs === "undefined") {
+    console.error("EmailJS is not loaded. Check the script tag.");
+    return;
+  }
+
+  emailjs.init("EZSFdkFACMcOMRA9C");
+
+  const form = document.getElementById("contactForm");
+  const sendBtn = document.getElementById("sendBtn");
+
+  if (!form || !sendBtn) {
+    console.error("Required elements not found");
+    return;
+  }
+
+  const emailField = document.getElementById("email");
+  const nameField = document.getElementById("fullName");
+  const messageField = document.getElementById("message");
+
+  emailField.addEventListener("blur", validateEmailField);
+  emailField.addEventListener("input", () => clearFieldError("email"));
+
+  nameField.addEventListener("input", () => clearFieldError("fullName"));
+  messageField.addEventListener("input", () => clearFieldError("message"));
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const name = document.getElementById("fullName").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const message = document.getElementById("message").value.trim();
+
+    let isValid = true;
+
+    if (!name) {
+      showFieldError("fullName", "Full name is required");
+      isValid = false;
+    } else if (name.length < 2) {
+      showFieldError("fullName", "Name must be at least 2 characters");
+      isValid = false;
+    } else if (name.length > 50) {
+      showFieldError("fullName", "Name cannot exceed 50 characters");
+      isValid = false;
+    }
+
+    if (!email) {
+      showFieldError("email", "Email is required");
+      isValid = false;
+    } else if (!validateEmail(email)) {
+      showFieldError("email", "Please enter a valid email address");
+      isValid = false;
+    }
+
+    if (!message) {
+      showFieldError("message", "Message is required");
+      isValid = false;
+    } else if (message.length < 10) {
+      showFieldError("message", "Message must be at least 10 characters");
+      isValid = false;
+    }
+
+    if (!isValid) {
+      showMessage("Please check the form errors above", "error");
+      return;
+    }
+
+    sendBtn.innerText = "Sending...";
+    sendBtn.disabled = true;
+    sendBtn.classList.add("opacity-50", "cursor-not-allowed");
+
+    const templateParams = {
+      title: name || "New Message",
+      name: name || "Anonymous",
+      message: message,
+      email: email,
+    };
+
+    try {
+      const response = await emailjs.send(
+        "service_74i3zo7",
+        "template_mg3p05c",
+        templateParams
+      );
+
+      console.log("Success! Response:", response);
+
+      showMessage(
+        "Message sent successfully! We'll contact you soon.",
+        "success"
+      );
+      form.reset();
+
+      clearFieldError("fullName");
+      clearFieldError("email");
+      clearFieldError("message");
+    } catch (error) {
+      console.error("EmailJS Error Details:", error);
+
+      let errorMessage = "Failed to send message. Please try again.";
+
+      if (error.status === 412) {
+        errorMessage = "Email service configuration error.";
+      } else if (error.text && error.text.includes("authentication")) {
+        errorMessage = "Authentication error. Service needs reconfiguration.";
+      } else if (error.text) {
+        errorMessage = `Error: ${error.text}`;
+      }
+
+      showMessage(errorMessage, "error");
+    }
+
+    setTimeout(() => {
+      sendBtn.innerText = "Send";
+      sendBtn.disabled = false;
+      sendBtn.classList.remove("opacity-50", "cursor-not-allowed");
+    }, 1000);
+  });
+
+  function validateEmailField() {
+    const email = emailField.value.trim();
+    if (email && !validateEmail(email)) {
+      showFieldError("email", "Please enter a valid email address");
+      return false;
+    }
+    return true;
+  }
+
+  function validateEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+
+  function showMessage(text, type) {
+    const msgBox = document.getElementById("formMsg");
+
+    let icon = type === "success" ? "✓" : "✗";
+    let bgColor = type === "success" ? "bg-green-500/10" : "bg-red-500/10";
+    let borderColor =
+      type === "success" ? "border-green-500/30" : "border-red-500/30";
+    let textColor = type === "success" ? "text-green-400" : "text-red-400";
+    let iconColor = type === "success" ? "text-green-500" : "text-red-500";
+
+    msgBox.innerHTML = `
+      <div class="flex items-center justify-center gap-3 p-4 rounded-xl ${bgColor} border ${borderColor} backdrop-blur-sm">
+        <span class="text-xl ${iconColor} font-bold">${icon}</span>
+        <span class="${textColor} font-medium text-sm">${text}</span>
+      </div>
+    `;
+
+    msgBox.classList.remove("opacity-0", "translate-y-[-10px]", "scale-95");
+    msgBox.classList.add("opacity-100", "translate-y-0", "scale-100");
+
+    setTimeout(() => {
+      msgBox.classList.remove("opacity-100", "translate-y-0", "scale-100");
+      msgBox.classList.add("opacity-0", "translate-y-[-10px]", "scale-95");
+
+      setTimeout(() => {
+        msgBox.innerHTML = "";
+      }, 500);
+    }, 5000);
+  }
+
+  function showFieldError(fieldId, message) {
+    const field = document.getElementById(fieldId);
+    const errorElementId = `${fieldId}Error`;
+    let errorElement = document.getElementById(errorElementId);
+
+    if (!errorElement) {
+      errorElement = document.createElement("p");
+      errorElement.id = errorElementId;
+      errorElement.className =
+        "text-red-400 text-xs mt-2 flex items-center gap-2 animate-pulse";
+      field.parentNode.appendChild(errorElement);
+    }
+
+    errorElement.innerHTML = `
+      <i class="fas fa-exclamation-circle text-xs"></i>
+      <span>${message}</span>
+    `;
+
+    field.classList.add("border-red-400", "shake", "bg-red-500/5");
+    field.classList.remove("border-white/20", "focus:border-sky-400");
+
+    setTimeout(() => {
+      field.classList.remove("shake");
+    }, 500);
+  }
+
+  function clearFieldError(fieldId) {
+    const field = document.getElementById(fieldId);
+    const errorElementId = `${fieldId}Error`;
+    const errorElement = document.getElementById(errorElementId);
+
+    if (errorElement) {
+      errorElement.remove();
+    }
+
+    field.classList.remove("border-red-400", "shake", "bg-red-500/5");
+    field.classList.add("border-white/20", "focus:border-sky-400");
+  }
+
+  function addShakeAnimation() {
+    if (document.getElementById("shake-style")) return;
+
+    const style = document.createElement("style");
+    style.id = "shake-style";
+    style.textContent = `
+      @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+        20%, 40%, 60%, 80% { transform: translateX(5px); }
+      }
+      .shake {
+        animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+      }
+      
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(-10px) scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+      
+      #formMsg > div {
+        animation: slideIn 0.3s ease-out;
+      }
+    `;
+    document.head.appendChild(style);
+  }
 });

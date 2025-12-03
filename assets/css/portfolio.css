@@ -1,0 +1,89 @@
+#home .content {
+  position: relative;
+  z-index: 5;
+}
+
+html,
+body {
+  overflow-x: hidden;
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  font-family: "Inter", sans-serif;
+  scroll-behavior: smooth;
+}
+
+#splash {
+  overflow: hidden;
+}
+@keyframes glow {
+  0% {
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.4),
+      0 0 20px rgba(56, 189, 248, 0.3), 0 0 30px rgba(56, 189, 248, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(56, 189, 248, 0.6),
+      0 0 40px rgba(56, 189, 248, 0.4), 0 0 60px rgba(56, 189, 248, 0.3);
+  }
+  100% {
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.4),
+      0 0 20px rgba(56, 189, 248, 0.3), 0 0 30px rgba(56, 189, 248, 0.2);
+  }
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
+}
+/* simple fade for splash removal */
+.fade-away {
+  transition: opacity 0.9s ease;
+  opacity: 0;
+}
+.nav-active {
+  color: rgb(56 189 248); /* sky-400 */
+  font-weight: 600;
+}
+.splash-inner {
+  transform: scale(1);
+}
+
+/* Tablet */
+@media (max-width: 768px) {
+  .splash-inner {
+    transform: scale(0.8);
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .splash-inner {
+    transform: scale(0.6);
+  }
+}
+.bouncing-btn-tailwind {
+  @apply block w-7 h-12 border-2 border-white rounded-2xl 
+         translate-y-16
+         relative
+         before:content-[''] before:absolute before:w-0.5 before:h-4 
+         before:bg-white before:left-1/2 before:bottom-2 
+         before:-translate-x-1/2;
+  animation: bouncing 2s infinite;
+}
+
+@keyframes bouncing {
+  0% {
+    transform: translateY(65px);
+  }
+  25% {
+    transform: translateY(90px);
+  }
+  50% {
+    transform: translateY(75px);
+  }
+  75% {
+    transform: translateY(90px);
+  }
+  100% {
+    transform: translateY(65px);
+  }
+}
