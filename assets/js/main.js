@@ -210,57 +210,174 @@ document.addEventListener("DOMContentLoaded", () => {
   const canvas = document.getElementById("dotsCanvas");
   const section = document.getElementById("contact");
 
-  const renderer = new THREE.WebGLRenderer({
-    canvas: canvas,
-    alpha: true,
-  });
-  renderer.setSize(section.clientWidth, section.clientHeight);
-
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(
-    75,
-    section.clientWidth / section.clientHeight,
-    0.1,
-    1000
-  );
-  camera.position.z = 6;
-
-  const particles = 800;
-  const geometry = new THREE.BufferGeometry();
-  const positions = new Float32Array(particles * 3);
-
-  for (let i = 0; i < particles * 3; i++) {
-    positions[i] = (Math.random() - 0.5) * 12;
+  if (!canvas) {
+    console.error("Canvas element not found!");
+    return;
   }
 
-  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  try {
+    const renderer = new THREE.WebGLRenderer({
+      canvas: canvas,
+      alpha: true,
+      antialias: true,
+    });
 
-  const material = new THREE.PointsMaterial({
-    color: 0x38bdf8,
-    size: 0.05,
-    transparent: true,
-  });
-
-  const points = new THREE.Points(geometry, material);
-  scene.add(points);
-
-  function animate() {
-    requestAnimationFrame(animate);
-
-    points.rotation.x += 0.0005;
-    points.rotation.y += 0.0007;
-
+    renderer.setPixelRatio(window.devicePixelRatio > 1 ? 2 : 1);
     renderer.setSize(section.clientWidth, section.clientHeight);
-    renderer.render(scene, camera);
+    renderer.setClearColor(0x000000, 0);
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(
+      60,
+      section.clientWidth / section.clientHeight,
+      0.1,
+      1000
+    );
+
+    camera.position.z = 15;
+
+    const particlesCount = 1500;
+    const geometry = new THREE.BufferGeometry();
+    const positions = new Float32Array(particlesCount * 3);
+    const colors = new Float32Array(particlesCount * 3);
+    const sizes = new Float32Array(particlesCount);
+
+    for (let i = 0; i < particlesCount * 3; i += 3) {
+      const radius = 10 + Math.random() * 5;
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.random() * Math.PI;
+
+      positions[i] = radius * Math.sin(phi) * Math.cos(theta);
+      positions[i + 1] = radius * Math.sin(phi) * Math.sin(theta);
+      positions[i + 2] = radius * Math.cos(phi);
+
+      const colorIntensity = 0.5 + Math.random() * 0.5;
+      colors[i] = 0.1 + Math.random() * 0.1;
+      colors[i + 1] = 0.5 + Math.random() * 0.3;
+      colors[i + 2] = 0.9 + Math.random() * 0.1;
+
+      sizes[i / 3] = Math.random() * 0.08 + 0.02;
+    }
+
+    geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+    geometry.setAttribute("size", new THREE.BufferAttribute(sizes, 1));
+
+    const material = new THREE.PointsMaterial({
+      size: 0.05,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.8,
+      sizeAttenuation: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+
+    const points = new THREE.Points(geometry, material);
+    scene.add(points);
+
+    function createStarfield() {
+      const starGeometry = new THREE.BufferGeometry();
+      const starCount = 300;
+      const starPositions = new Float32Array(starCount * 3);
+
+      for (let i = 0; i < starCount * 3; i += 3) {
+        const radius = 20 + Math.random() * 10;
+        starPositions[i] = (Math.random() - 0.5) * radius * 2;
+        starPositions[i + 1] = (Math.random() - 0.5) * radius * 2;
+        starPositions[i + 2] = (Math.random() - 0.5) * radius * 2;
+      }
+
+      starGeometry.setAttribute(
+        "position",
+        new THREE.BufferAttribute(starPositions, 3)
+      );
+
+      const starMaterial = new THREE.PointsMaterial({
+        color: 0xffffff,
+        size: 0.02,
+        transparent: true,
+        opacity: 0.3,
+      });
+
+      const stars = new THREE.Points(starGeometry, starMaterial);
+      scene.add(stars);
+      return stars;
+    }
+
+    const stars = createStarfield();
+
+    let time = 0;
+    const rotationSpeed = 0.0003;
+    const waveAmplitude = 0.5;
+
+    function animate() {
+      requestAnimationFrame(animate);
+      time += 0.01;
+
+      const positions = points.geometry.attributes.position.array;
+      const originalPositions = points.userData.originalPositions || [
+        ...positions,
+      ];
+
+      if (!points.userData.originalPositions) {
+        points.userData.originalPositions = [...positions];
+      }
+
+      for (let i = 0; i < positions.length; i += 3) {
+        const originalX = points.userData.originalPositions[i];
+        const originalY = points.userData.originalPositions[i + 1];
+        const originalZ = points.userData.originalPositions[i + 2];
+
+        positions[i] =
+          originalX + Math.sin(time + originalY * 0.1) * waveAmplitude;
+        positions[i + 1] =
+          originalY + Math.cos(time + originalZ * 0.1) * waveAmplitude;
+        positions[i + 2] =
+          originalZ + Math.sin(time + originalX * 0.1) * waveAmplitude;
+      }
+
+      points.geometry.attributes.position.needsUpdate = true;
+
+      points.rotation.x += rotationSpeed * 0.5;
+      points.rotation.y += rotationSpeed;
+
+      if (stars) {
+        stars.rotation.y += rotationSpeed * 0.3;
+      }
+
+      if (renderer.getSize(new THREE.Vector2()).width !== section.clientWidth) {
+        renderer.setSize(section.clientWidth, section.clientHeight);
+        camera.aspect = section.clientWidth / section.clientHeight;
+        camera.updateProjectionMatrix();
+      }
+
+      renderer.render(scene, camera);
+    }
+
+    animate();
+
+    window.addEventListener("resize", () => {
+      renderer.setSize(section.clientWidth, section.clientHeight);
+      camera.aspect = section.clientWidth / section.clientHeight;
+      camera.updateProjectionMatrix();
+    });
+
+    let isPageVisible = true;
+
+    document.addEventListener("visibilitychange", () => {
+      isPageVisible = !document.hidden;
+    });
+
+    const ambientLight = new THREE.AmbientLight(0x88ccff, 0.1);
+    scene.add(ambientLight);
+  } catch (error) {
+    console.error("Error initializing Three.js:", error);
+    const errorDiv = document.createElement("div");
+    errorDiv.className = "bg-red-900/50 text-white p-4 rounded-lg text-center";
+    errorDiv.textContent =
+      "Unable to load interactive background. Please refresh the page.";
+    canvas.parentElement.appendChild(errorDiv);
   }
-
-  animate();
-
-  window.addEventListener("resize", () => {
-    renderer.setSize(section.clientWidth, section.clientHeight);
-    camera.aspect = section.clientWidth / section.clientHeight;
-    camera.updateProjectionMatrix();
-  });
 });
 
 document.addEventListener("DOMContentLoaded", () => {
