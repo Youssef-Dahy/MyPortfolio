@@ -617,3 +617,65 @@ document.addEventListener("DOMContentLoaded", () => {
     document.head.appendChild(style);
   }
 });
+
+document.addEventListener("DOMContentLoaded", () => {
+  function whenReady(callback) {
+    const interval = setInterval(() => {
+      if (
+        window.gsap &&
+        window.SplitType &&
+        document.getElementById("dynamicText")
+      ) {
+        clearInterval(interval);
+        callback();
+      }
+    }, 50);
+  }
+
+  whenReady(() => {
+    const dynamicText = document.getElementById("dynamicText");
+
+    const words = [
+      "Responsive",
+      "Animated",
+      "Scalable",
+      "Secure",
+      "Modern",
+      "Professional",
+    ];
+
+    let index = 0;
+    let split = null; // لتخزين SplitType الحالي
+
+    function runAnimation() {
+      // إعادة النص القديم إذا كان موجود
+      if (split) split.revert();
+
+      // تعيين الكلمة الجديدة
+      dynamicText.textContent = words[index];
+
+      // تقسيم الحروف
+      split = new SplitType(dynamicText, { types: "chars" });
+
+      // GSAP animation
+      gsap.fromTo(
+        split.chars,
+        { opacity: 0, y: 20 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.5,
+          stagger: 0.05,
+          ease: "power2.out",
+        }
+      );
+
+      index = (index + 1) % words.length;
+
+      // بعد 2 ثانية، الانتقال للكلمة التالية
+      setTimeout(runAnimation, 2000);
+    }
+
+    runAnimation();
+  });
+});
