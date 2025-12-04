@@ -645,19 +645,15 @@ document.addEventListener("DOMContentLoaded", () => {
     ];
 
     let index = 0;
-    let split = null; // لتخزين SplitType الحالي
+    let split = null;
 
     function runAnimation() {
-      // إعادة النص القديم إذا كان موجود
       if (split) split.revert();
 
-      // تعيين الكلمة الجديدة
       dynamicText.textContent = words[index];
 
-      // تقسيم الحروف
       split = new SplitType(dynamicText, { types: "chars" });
 
-      // GSAP animation
       gsap.fromTo(
         split.chars,
         { opacity: 0, y: 20 },
@@ -672,10 +668,237 @@ document.addEventListener("DOMContentLoaded", () => {
 
       index = (index + 1) % words.length;
 
-      // بعد 2 ثانية، الانتقال للكلمة التالية
       setTimeout(runAnimation, 2000);
     }
 
     runAnimation();
   });
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+  // Chatbot elements
+  const chatbotToggle = document.getElementById("chatbotToggle");
+  const chatbotContainer = document.getElementById("chatbotContainer");
+  const closeChatbot = document.getElementById("closeChatbot");
+  const chatbotInput = document.getElementById("chatbotInput");
+  const chatbotSend = document.getElementById("chatbotSend");
+  const chatbotMessages = document.getElementById("chatbotMessages");
+
+  // Bot responses based on keywords
+  const botResponses = {
+    greeting: [
+      "Hello there! 👋 How can I help you today?",
+      "Hi! I'm your portfolio assistant. Ask me anything about Youssef!",
+      "Hey! Welcome to Youssef's portfolio. What would you like to know?",
+    ],
+    about: [
+      "Youssef Dahy is a passionate front-end developer specializing in creating interactive and visually engaging web experiences. He loves working with modern tools like Tailwind, GSAP, Angular, and Vanta.js.",
+      "Youssef is a front-end developer with experience in building responsive web applications. He's currently working as a Front-End Developer at Code Zone.",
+      "He's a dedicated developer who enjoys turning complex problems into simple, beautiful designs. Check out the 'About' section for more details!",
+    ],
+    skills: [
+      "Youssef has expertise in HTML, CSS, JavaScript, TypeScript, Angular, jQuery, C#, and Blazor. He also works with Tailwind CSS and Bootstrap for styling.",
+      "His technical skills include front-end technologies like Angular, TypeScript, and modern CSS frameworks. Check the 'Skills' section to see all his abilities!",
+      "He's proficient in both front-end development and has experience with C# for back-end integration.",
+    ],
+    experience: [
+      "Youssef currently works as a Front-End Developer at Code Zone (since Jun 2024). Previously, he was a Front-End Trainee at Wego Solution (Feb-Apr 2024).",
+      "He has experience delivering production-ready applications including a Medical Insurance SPA, Recruitment Platform, and B2B Companies Portal.",
+      "Check the 'Experience' section for detailed information about his professional journey!",
+    ],
+    projects: [
+      "Youssef has worked on several projects including Fresh Cart, Alex Med Guide, Devfolio, and more. You can view them in the 'Projects' section!",
+      "His portfolio showcases projects like Fresh Cart (e-commerce), Alex Med Guide (medical directory), and various responsive websites.",
+      "All projects are available to view online. Scroll to the 'Projects' section and click 'View Project' to see them live!",
+    ],
+    contact: [
+      "You can contact Youssef via email through the contact form, or connect with him on LinkedIn, GitHub, or WhatsApp. Links are in the footer!",
+      "Use the contact form on this page to send him a message directly. You can also find his social media links in the footer section.",
+      "Check the 'Contact' section for ways to get in touch. He's open to new opportunities and collaborations!",
+    ],
+    default: [
+      "I'm not sure I understand. You can ask me about Youssef's skills, experience, projects, or how to contact him.",
+      "Try asking about his skills, experience, or projects. You can also use the quick reply buttons!",
+      "I'm here to help you learn about Youssef. Try asking specific questions about his portfolio.",
+    ],
+  };
+
+  // Quick replies for easy interaction
+  const quickReplies = [
+    "Tell me about Youssef",
+    "What skills does he have?",
+    "Show me his projects",
+    "How to contact him?",
+    "What's his experience?",
+  ];
+
+  // Open/close chatbot
+  chatbotToggle.addEventListener("click", () => {
+    chatbotContainer.classList.add("open");
+    chatbotToggle.classList.remove("pulse");
+  });
+
+  closeChatbot.addEventListener("click", () => {
+    chatbotContainer.classList.remove("open");
+  });
+
+  // Send message function
+  function sendMessage() {
+    const message = chatbotInput.value.trim();
+    if (!message) return;
+
+    // Add user message
+    addMessage(message, "user");
+    chatbotInput.value = "";
+
+    // Show typing indicator
+    showTypingIndicator();
+
+    // Get bot response after delay
+    setTimeout(() => {
+      removeTypingIndicator();
+      const response = getBotResponse(message);
+      addMessage(response, "bot");
+
+      // Add quick replies for follow-up questions
+      if (Math.random() > 0.5) {
+        setTimeout(() => addQuickReplies(), 300);
+      }
+
+      // Auto-scroll to bottom
+      scrollToBottom();
+    }, 1000 + Math.random() * 1000);
+  }
+
+  // Send message on button click
+  chatbotSend.addEventListener("click", sendMessage);
+
+  // Send message on Enter key
+  chatbotInput.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+      sendMessage();
+    }
+  });
+
+  // Add message to chat
+  function addMessage(text, sender) {
+    const messageDiv = document.createElement("div");
+    messageDiv.className = `message ${sender}-message`;
+    messageDiv.textContent = text;
+    chatbotMessages.appendChild(messageDiv);
+    scrollToBottom();
+  }
+
+  // Show typing indicator
+  function showTypingIndicator() {
+    const typingDiv = document.createElement("div");
+    typingDiv.className = "typing-indicator";
+    typingDiv.id = "typingIndicator";
+    typingDiv.innerHTML = "<span></span><span></span><span></span>";
+    chatbotMessages.appendChild(typingDiv);
+    scrollToBottom();
+  }
+
+  // Remove typing indicator
+  function removeTypingIndicator() {
+    const typingIndicator = document.getElementById("typingIndicator");
+    if (typingIndicator) {
+      typingIndicator.remove();
+    }
+  }
+
+  // Get bot response based on user input
+  function getBotResponse(input) {
+    const lowerInput = input.toLowerCase();
+
+    // Check for keywords
+    if (
+      lowerInput.includes("hello") ||
+      lowerInput.includes("hi") ||
+      lowerInput.includes("hey")
+    ) {
+      return getRandomResponse("greeting");
+    } else if (
+      lowerInput.includes("about") ||
+      lowerInput.includes("who") ||
+      lowerInput.includes("youssef")
+    ) {
+      return getRandomResponse("about");
+    } else if (
+      lowerInput.includes("skill") ||
+      lowerInput.includes("tech") ||
+      lowerInput.includes("what can")
+    ) {
+      return getRandomResponse("skills");
+    } else if (
+      lowerInput.includes("experience") ||
+      lowerInput.includes("work") ||
+      lowerInput.includes("job")
+    ) {
+      return getRandomResponse("experience");
+    } else if (lowerInput.includes("project") || lowerInput.includes("work")) {
+      return getRandomResponse("projects");
+    } else if (
+      lowerInput.includes("contact") ||
+      lowerInput.includes("email") ||
+      lowerInput.includes("phone")
+    ) {
+      return getRandomResponse("contact");
+    } else {
+      return getRandomResponse("default");
+    }
+  }
+
+  // Get random response from category
+  function getRandomResponse(category) {
+    const responses = botResponses[category];
+    return responses[Math.floor(Math.random() * responses.length)];
+  }
+
+  // Add quick reply buttons
+  function addQuickReplies() {
+    const quickRepliesDiv = document.createElement("div");
+    quickRepliesDiv.className = "quick-replies";
+
+    // Shuffle and take 3 random quick replies
+    const shuffled = [...quickReplies].sort(() => 0.5 - Math.random());
+    const selected = shuffled.slice(0, 3);
+
+    selected.forEach((reply) => {
+      const button = document.createElement("div");
+      button.className = "quick-reply";
+      button.textContent = reply;
+      button.addEventListener("click", () => {
+        chatbotInput.value = reply;
+        sendMessage();
+      });
+      quickRepliesDiv.appendChild(button);
+    });
+
+    const lastMessage = chatbotMessages.lastChild;
+    lastMessage.appendChild(quickRepliesDiv);
+    scrollToBottom();
+  }
+
+  // Scroll to bottom of chat
+  function scrollToBottom() {
+    chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+  }
+
+  // Quick reply click handlers
+  document.querySelectorAll(".quick-reply").forEach((button) => {
+    button.addEventListener("click", function () {
+      const reply = this.getAttribute("data-reply");
+      chatbotInput.value = reply;
+      sendMessage();
+    });
+  });
+
+  // Initialize chatbot with welcome message if first time
+  if (!localStorage.getItem("chatbotVisited")) {
+    setTimeout(() => {
+      chatbotToggle.classList.add("pulse");
+      localStorage.setItem("chatbotVisited", "true");
+    }, 5000);
+  }
 });
