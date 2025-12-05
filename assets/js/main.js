@@ -685,41 +685,60 @@ document.addEventListener("DOMContentLoaded", function () {
   const chatbotMessages = document.getElementById("chatbotMessages");
 
   // Bot responses based on keywords
+  // Bot responses based on keywords
   const botResponses = {
     greeting: [
-      "Hello there! 👋 How can I help you today?",
-      "Hi! I'm your portfolio assistant. Ask me anything about Youssef!",
-      "Hey! Welcome to Youssef's portfolio. What would you like to know?",
+      "Hello there! 👋 How can I assist you today?",
+      "Hi! I'm your friendly AI assistant here to help you explore Youssef's portfolio!",
+      "Hey! 😊 What would you like to know about Youssef?",
     ],
+
     about: [
-      "Youssef Dahy is a passionate front-end developer specializing in creating interactive and visually engaging web experiences. He loves working with modern tools like Tailwind, GSAP, Angular, and Vanta.js.",
-      "Youssef is a front-end developer with experience in building responsive web applications. He's currently working as a Front-End Developer at Code Zone.",
-      "He's a dedicated developer who enjoys turning complex problems into simple, beautiful designs. Check out the 'About' section for more details!",
+      "Youssef Dahy is a passionate front-end developer who loves building smooth, interactive, and visually powerful web experiences using Angular, Tailwind, GSAP, and more.",
+      "Youssef is a detail-oriented front-end developer currently working at Code Zone, with strong experience in responsive UI and modern web technologies.",
+      "He's a creative developer who enjoys turning ideas into functional, beautiful interfaces. You can learn more about him in the About section!",
     ],
+
     skills: [
-      "Youssef has expertise in HTML, CSS, JavaScript, TypeScript, Angular, jQuery, C#, and Blazor. He also works with Tailwind CSS and Bootstrap for styling.",
-      "His technical skills include front-end technologies like Angular, TypeScript, and modern CSS frameworks. Check the 'Skills' section to see all his abilities!",
-      "He's proficient in both front-end development and has experience with C# for back-end integration.",
+      "Youssef is skilled in HTML, CSS, JavaScript, TypeScript, Angular, Tailwind, Bootstrap, jQuery, C#, and Blazor.",
+      "His skillset includes modern front-end frameworks, UI animation tools, and clean, optimized component architecture.",
+      "He also has experience integrating front-end with back-end APIs using C#. Check the Skills section for more!",
     ],
+
     experience: [
-      "Youssef currently works as a Front-End Developer at Code Zone (since Jun 2024). Previously, he was a Front-End Trainee at Wego Solution (Feb-Apr 2024).",
-      "He has experience delivering production-ready applications including a Medical Insurance SPA, Recruitment Platform, and B2B Companies Portal.",
-      "Check the 'Experience' section for detailed information about his professional journey!",
+      "Youssef works as a Front-End Developer at Code Zone (since Jun 2024). He also completed a productive Front-End traineeship at Wego Solution.",
+      "His experience includes building production-ready SPAs like Medical Insurance systems, Recruitment Platforms, and B2B portals.",
+      "You can dive deeper into his experience in the Experience section!",
     ],
+
     projects: [
-      "Youssef has worked on several projects including Fresh Cart, Alex Med Guide, Devfolio, and more. You can view them in the 'Projects' section!",
-      "His portfolio showcases projects like Fresh Cart (e-commerce), Alex Med Guide (medical directory), and various responsive websites.",
-      "All projects are available to view online. Scroll to the 'Projects' section and click 'View Project' to see them live!",
+      "Youssef has worked on several projects including Fresh Cart, Alex Med Guide, Devfolio, and more — all available in the Projects section!",
+      "His work includes e-commerce apps, medical guide platforms, and modern responsive sites.",
+      "You can view all his live projects by scrolling to the Projects section!",
     ],
+
     contact: [
-      "You can contact Youssef via email through the contact form, or connect with him on LinkedIn, GitHub, or WhatsApp. Links are in the footer!",
-      "Use the contact form on this page to send him a message directly. You can also find his social media links in the footer section.",
-      "Check the 'Contact' section for ways to get in touch. He's open to new opportunities and collaborations!",
+      "You can contact Youssef through the contact form or via his social links in the footer!",
+      "He’s available for collaboration — reach him through the Contact section or connect with him on LinkedIn!",
+      "Want to reach out? You can message him directly via the Contact section or check the social links!",
     ],
+
+    whatsapp: [
+      "Sure! 😊 You can reach Youssef directly on WhatsApp here:\n👉 https://wa.me/201003657582",
+      "Here you go! 📱\nYoussef’s WhatsApp:\n→ https://wa.me/201003657582",
+      "Absolutely! You can contact Youssef on WhatsApp using this link:\n🔗 https://wa.me/201003657582",
+    ],
+
+    linkedin: [
+      "Of course! 🤝 Here is Youssef’s LinkedIn profile:\n👉 https://linkedin.com/in/youssef-dahy-a67387299",
+      "Here's his LinkedIn! 🔗\nhttps://linkedin.com/in/youssef-dahy-a67387299",
+      "You can connect with Youssef on LinkedIn here:\n→ https://linkedin.com/in/youssef-dahy-a67387299",
+    ],
+
     default: [
-      "I'm not sure I understand. You can ask me about Youssef's skills, experience, projects, or how to contact him.",
-      "Try asking about his skills, experience, or projects. You can also use the quick reply buttons!",
-      "I'm here to help you learn about Youssef. Try asking specific questions about his portfolio.",
+      "Hmm, I'm not sure I got that 😅 — but you can ask me about Youssef's skills, experience, projects, or how to contact him!",
+      "You can ask me things like: his skills, experience, projects, or even his WhatsApp!",
+      "I'm here to help you explore Youssef’s portfolio — try asking something more specific! 😊",
     ],
   };
 
@@ -808,45 +827,200 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // Get bot response based on user input
-  function getBotResponse(input) {
-    const lowerInput = input.toLowerCase();
+  // INTENTS MEMORY
+  let lastIntent = "";
 
-    // Check for keywords
+  // NLP keyword groups (expanded for intelligent detection)
+  const NLP = {
+    projects: [
+      "project",
+      "projects",
+      "show me",
+      "portfolio",
+      "work samples",
+      "samples",
+      "case studies",
+      "اعمال",
+      "مشاريع",
+      "اعماله",
+      "وريني المشاريع",
+    ],
+
+    experience: [
+      "experience",
+      "experince",
+      "work history",
+      "career",
+      "background",
+      "خبرة",
+      "خبراته",
+      "مسيرته",
+      "اشتغل ايه",
+    ],
+
+    contact: [
+      "contact",
+      "reach",
+      "email",
+      "phone",
+      "call",
+      "whatsapp",
+      "linkedin",
+      "اتواصل",
+      "التواصل",
+      "رقم",
+      "اميل",
+    ],
+
+    skills: [
+      "skills",
+      "skill",
+      "tech",
+      "technologies",
+      "abilities",
+      "مهارات",
+      "بيعرف ايه",
+      "تقنيات",
+    ],
+
+    about: [
+      "about",
+      "who is",
+      "who's",
+      "tell me",
+      "youssef",
+      "من هو",
+      "عن يوسف",
+      "عن يوسُف",
+    ],
+
+    greeting: ["hello", "hi", "hey", "good", "اهلا", "مرحبا", "سلام", "هاي"],
+  };
+
+  // Helper: word/phrase matching using regex
+  function matchesIntent(input, terms) {
+    const text = input.toLowerCase();
+    return terms.some((t) => {
+      const escaped = t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      return new RegExp("\\b" + escaped + "\\b", "i").test(text);
+    });
+  }
+
+  // AI PROFESSIONAL & FRIENDLY PERSONALITY in responses
+  function AI_respond(intent, message) {
+    lastIntent = intent;
+
+    const personalityPrefix = [
+      "Certainly! 😊",
+      "Absolutely — here you go! 🤖✨",
+      "Sure thing! Happy to help 😄",
+      "Of course! Here’s what you need 👇",
+      "I can help with that! 🚀",
+    ];
+
+    const intro =
+      personalityPrefix[Math.floor(Math.random() * personalityPrefix.length)];
+
+    return `${intro}\n${message}`;
+  }
+
+  // MAIN ADVANCED ENGINE with PERSONALITY
+  function getBotResponse(input) {
+    const lower = input.toLowerCase().trim();
+
+    // Follow-up detection
     if (
-      lowerInput.includes("hello") ||
-      lowerInput.includes("hi") ||
-      lowerInput.includes("hey")
+      lower.includes("more") ||
+      lower.includes("more please") ||
+      lower.includes("كمان")
     ) {
-      return getRandomResponse("greeting");
-    } else if (
-      lowerInput.includes("about") ||
-      lowerInput.includes("who") ||
-      lowerInput.includes("youssef")
-    ) {
-      return getRandomResponse("about");
-    } else if (
-      lowerInput.includes("skill") ||
-      lowerInput.includes("tech") ||
-      lowerInput.includes("what can")
-    ) {
-      return getRandomResponse("skills");
-    } else if (
-      lowerInput.includes("experience") ||
-      lowerInput.includes("work") ||
-      lowerInput.includes("job")
-    ) {
-      return getRandomResponse("experience");
-    } else if (lowerInput.includes("project") || lowerInput.includes("work")) {
-      return getRandomResponse("projects");
-    } else if (
-      lowerInput.includes("contact") ||
-      lowerInput.includes("email") ||
-      lowerInput.includes("phone")
-    ) {
-      return getRandomResponse("contact");
-    } else {
-      return getRandomResponse("default");
+      if (lastIntent === "projects") {
+        return AI_respond(
+          "projects",
+          "Here’s another project Youssef worked on — he also built several responsive interfaces and dashboards using Angular and Tailwind. Would you like a link?"
+        );
+      }
+      if (lastIntent === "experience") {
+        return AI_respond(
+          "experience",
+          "In addition to his main role, Youssef contributed to optimizing UI performance and improving user flows in multiple real-world apps."
+        );
+      }
+      if (lastIntent === "skills") {
+        return AI_respond(
+          "skills",
+          "He’s also familiar with GSAP, Vanta.js, API integration, and UI animation techniques."
+        );
+      }
+      if (lastIntent === "contact") {
+        return AI_respond(
+          "contact",
+          "You can also reach him via LinkedIn or WhatsApp — both available in the footer."
+        );
+      }
     }
+
+    // INTENT MATCHING
+    if (matchesIntent(lower, NLP.projects)) {
+      return AI_respond(
+        "projects",
+        "Here are some of Youssef’s highlighted projects:\n\n" +
+          "🛒 **FreshCart** – E-commerce platform built with Angular.\n" +
+          "🏥 **Alex Med Guide** – Medical directory with search and filtering.\n" +
+          "💼 **Devfolio** – Interactive personal portfolio.\n\n" +
+          "Would you like to see more?"
+      );
+    }
+
+    if (matchesIntent(lower, NLP.experience)) {
+      return AI_respond(
+        "experience",
+        "Youssef works as a Front-End Developer at Code Zone and has delivered real production projects such as Medical Insurance SPA and B2B platforms. He also trained at Wego Solution.\n" +
+          "Would you like more details?"
+      );
+    }
+
+    if (matchesIntent(lower, NLP.contact)) {
+      return AI_respond(
+        "contact",
+        "You can contact Youssef easily:\n\n" +
+          "📧 Through the contact form\n" +
+          "💬 WhatsApp (footer)\n" +
+          "🔗 LinkedIn & GitHub links available as well\n\n" +
+          "How would you prefer to reach him?"
+      );
+    }
+
+    if (matchesIntent(lower, NLP.skills)) {
+      return AI_respond(
+        "skills",
+        "Youssef is skilled in:\n\n" +
+          "💻 HTML, CSS, JavaScript, TypeScript\n" +
+          "⚡ Angular, jQuery, Blazor, C#\n" +
+          "🎨 Tailwind, Bootstrap, GSAP, Vanta.js\n\n" +
+          "Need examples of where he used these?"
+      );
+    }
+
+    if (matchesIntent(lower, NLP.about)) {
+      return AI_respond(
+        "about",
+        "Youssef is a passionate Front-End Developer who focuses on interactive UI, clean code, and smooth animations. He loves Angular, performance optimization, and creating engaging web experiences."
+      );
+    }
+
+    if (matchesIntent(lower, NLP.greeting)) {
+      return AI_respond(
+        "greeting",
+        "Hi! I'm your AI assistant — professional, friendly, and ready to help 😄\n\nAsk me about projects, experience, skills, or how to contact Youssef."
+      );
+    }
+
+    // DEFAULT
+    return AI_respond(
+      "default",
+      "I didn’t fully catch that 🤔\nYou can ask me about:\n• his projects\n• experience\n• skills\n• contact info\n\nWhat would you like to know?"
+    );
   }
 
   // Get random response from category
